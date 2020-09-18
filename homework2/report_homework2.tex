@@ -1,0 +1,886 @@
+\documentclass[10pt,usenames,dvipsnames]{article}
+\usepackage{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[ruled,vlined]{algorithm2e}
+
+%\usepackage{beton}
+%\usepackage{ccfonts}
+%\usepackage{concrete}
+\usepackage{concmath}
+\usepackage{eulervm}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{mathtools}
+\usepackage{multicol}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{marginnote}
+\usepackage{pgfplots}
+\usepackage{float}
+\usepackage{bbm} %mathbbm for indicator variable
+\usepackage{hyperref}
+\pgfplotsset{compat=1.5}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\usepackage{listings}
+\usepackage{standalone}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\usepackage{mathtools}
+
+\usepackage{wasysym}
+\usepackage[margin=1.5in]{geometry} 
+\usepackage{enumerate}
+\index{\usepackage}\usepackage{multicol}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbf{C}}
+\newcommand{\Pbb}{\mathbb{P}}
+\newcommand{\Fcal}{\mathcal{F}}
+\newcommand{\Acal}{\mathcal{A}}
+\newcommand{\Ecal}{\mathcal{E}}
+\newcommand{\Ebb}{\mathbb{E}}
+\newcommand{\Vbb}{\mathbb{V}}
+\newcommand{\Qbb}{\mathbb{Q}}
+\newcommand{\ind}{\mathbbm{1}} %Indicator variable
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newenvironment{theorem}[2][Theorem]{\begin{trivlist}
+  \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+  \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{exercise}[2][Exercise]{\begin{trivlist}
+  \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{reflection}[2][Reflection]{\begin{trivlist}
+  \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{proposition}[2][Proposition]{\begin{trivlist}
+  \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{corollary}[2][Corollary]{\begin{trivlist}
+  \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\newenvironment{definition}[2][Definition]{\begin{trivlist}
+  \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\setlength{\parindent}{0em}
+
+\begin{document}
+	
+  \renewcommand{\qedsymbol}{\smiley}
+	\title{Advanced Algorithms \\ Homework 2
+	}
+	\author{Daniel Grosu, Marijn van der Meer, Frederic Berdoz}
+	
+	\maketitle
+
+  \begin{exercise}{1} Suppose that you are given an insertion only stream, i.e. sequence of m numbers
+$i_1,...,i_m$, where each number is between $1$ and $n$ (we assume that $m = n^{O(1)}$). Let $x \in \mathbb{R}^n$
+denote the resulting frequency vector, i.e. for every $j \in [n] = \{1,2,...,n\}$ we let $x_j$ denote the
+number of occurrences of $j$ in the stream.
+Give a randomised algorithm for finding the approximate median of a stream, i.e. for finding
+an element $i$ such that
+
+\begin{equation*}
+    \sum_{j = 1}^{i}x_j \geq (1/2-\epsilon)m
+\end{equation*}
+and
+\begin{equation*}
+    \sum_{j = 1}^{i-1}x_j \leq (1/2+\epsilon)m
+\end{equation*}
+ 
+ for parameters $\epsilon > 0$. For a failure probability $\delta \in (0,1)$,
+ your algorithm should use $O(\frac{1}{\epsilon^2}log \left( \frac{1}{\delta}
+ \right)logn)$ bits of space. You may assume that the length of the stream $m$
+ is given to you as a 
+parameter, and that your algorithm has access to a source of random coins. \\
+  \textit{Answer.}
+    Let $A = [a_1, a_2, \ldots, a_{m-1}, a_m]$ be the stream with
+    $a_i \in \left[ n \right]$ and $m = n^{O(1)}$and $\overrightarrow{A}$ the array of the elements of the stream sorted
+    in a non-decreasing order. Let the rank of an element
+    $a_i \in A$ be its position in the array $ \overrightarrow{A}$. Then finding an element $i \in [n]$ such that
+
+    \begin{equation}
+      \sum_{j = 1}^i x_j \geq (1 - \epsilon)\frac{m}{2} \text{ and }  \sum_{j =
+        1}^{i-1} x_j \leq (1 + \epsilon)\frac{m}{2} 
+    \end{equation}
+    is equivalent to finding an element $a_i \in A$ with rank in $ \left[ (1
+      - \epsilon)\frac{m}{2}; (1 + \epsilon)\frac{m}{2} \right]$. 
+
+    To comply with the space restrictions, we have to ($1$) either be highly selective
+    of which information from the stream to store or ($2$) to compute some statistics
+    in a rolling fashion. Unlike computing means or variations, finding the
+    median of the stream needs complete information on the partial order.
+    Relaxing the condition to finding some $\epsilon$-approximate of the median
+    allows us to attack the problem with the first approach.
+
+    In Algorithm 1 we present a simple algorithm based on sampling
+    a random subset with size parametrized by the required $\epsilon$-approximation
+    accuracy and the failure probability $\delta$.
+\\ \\
+\begin{algorithm}[H]
+\SetAlgoLined
+\KwIn{The length of the stream $m$.}
+\KwOut{A median with rank in $\left[ (1 - \epsilon)\frac{m}{2}, (1
+    +\epsilon)\frac{m}{2} \right]$ with probability $\delta$}
+ $k \leftarrow \lceil  \frac{4 + 2\epsilon}{\epsilon^2(1 - \epsilon)}
+ \log(\frac{2}{\delta}) \rceil$\;
+ $l \leftarrow NchooseK(m, k) \subset \left[ m \right]$;
+ \tcp{a random subset of size $k$ (see annex)}
+ $S \leftarrow \varnothing$\;
+\For{$i = 1$ to $m$ do}{
+ $stream >> a_i$; \tcp{read the next integer from the stream}
+ \If{$i \in l$}{
+  $S\leftarrow S \cup \{ a_i \}$
+ }
+}
+$S \leftarrow S.sort()$\;
+ \Return{$S\left(\lceil \frac{k}{2} \rceil\right)$};
+ \caption{Median of medians}
+ \label{alg:algorithm1}
+\end{algorithm}\mbox{}
+ \\ \\
+    The idea is to select a subset $S$ of size $k$ (see the annex for details) from the stream and to return
+    the median of the subset. There are only two cases in which the algorithm
+    would fail to return an element with rank in $\left[
+      (1-\epsilon)\frac{m}{2}; (1+\epsilon) \frac{m}{2} \right]$, cases which we
+    designate as an $L$-error or $R$-error. Let $L$ be the subset of $A$ of
+    elements with rank smaller or equal than $(1 - \epsilon)\frac{m}{2}$ and $R$
+    the subset of $A$ of elements of rank bigger than $(1 +
+    \epsilon)\frac{m}{2}$. Obviously, returning an element $a_i \in (L \cup R)$
+    terminates in a failure
+    while returning an element $a_i \in (A \setminus (L \cup R)) = M$ leads to
+    a success of the algorithm. The first scenario occurs when at least $\lceil k/2 \rceil$ are sampled from
+    the $L$ subset or when at least $\lceil  k/2 \rceil$ are sampled from the
+    $R$ subset. Such concentrations on both ends of the sorted stream will swing
+    the median of the subset $S$ away from the success region $M$. 
+    \autoref{fig:figure1} illustrates both failure scenarios and the success
+    scenario.
+
+    In the following we will bound the failure error using the Chernoff bounds and show that by
+    controlling the size of the subset $S$ one can moderate the failure probability.
+    
+    \begin{figure}
+      \centering
+      \includestandalone[width=0.8\linewidth]{figure_ex1}
+      \caption{Illustration of the sorted stream and the error cases}
+      \label{fig:figure1}
+    \end{figure}
+
+
+\begin{proof}[Proof of Algorithm 1]
+\textbf{The \textbf{\text{\color{red} L-error}} and \textbf{\color{red} R-error}
+probabilistic analysis:}
+
+Let $X_1, X_2, \ldots, X_k$ be random values such that $X_i = 1$ if $l_i \in
+L $ and $X_i = 0$ if $l_i \in M \cup R$. Denote $X = \sum_{i=1}^k X_i$ with the expectation
+
+\begin{equation*}\Ebb\left[ X \right] = k \times\frac{(1 -
+  \epsilon)\frac{m}{2}}{m} = (1 - \epsilon)\frac{k}{2}.
+\end{equation*}
+
+Since $|L| = |R| = (1 - \epsilon)\frac{m}{2}$ and the sampling of $S$ is
+uniform, the chance of committing an $L$-error or an $R$-error is the same:
+\begin{align*}
+  \Pbb\left[ \text{\textbf{\color{red} L-error}} \right] = \Pbb\left[
+    \text{\textbf{\color{red} R-error}} \right] &= \Pbb\left[ X > \frac{k}{2}
+  \right]  \\
+  & \leq \Pbb\left[ X \geq (1 + \epsilon)(1 - \epsilon)\frac{k}{2}\right] && (1
+  + \epsilon)(1 - \epsilon) < 1\\ 
+  & = \Pbb\left[ X \geq (1 +\epsilon) \Ebb\left[ X \right] \right] \\
+  & \leq\exp\left\{-\frac{\epsilon^2}{2 + \epsilon} (1 - \epsilon)\frac{k}{2}\right\}
+\end{align*}
+Choosing $k = \log\left( \frac{2}{\delta} \right) \frac{4 + 2
+  \epsilon}{\epsilon^2(1 - \epsilon)}$ yields:
+\begin{align*}
+  \Pbb\left[ \text{\textbf{\color{red} L-error}} \right] = \Pbb\left[
+    \text{\textbf{\color{red} R-error}} \right] & \leq \exp\left\{ -\frac{\epsilon^2}{2 + \epsilon} (1 - \epsilon)\frac{k}{2}\log\left( \frac{2}{\delta} \right) \frac{4 + 2
+  \epsilon}{\epsilon^2(1 - \epsilon)}\right\} \\
+  & \leq \exp\left\{ -log\left( \frac{2}{\delta} \right) \right\} \\
+  & = \frac{\delta}{2}
+\end{align*}
+Hence the probability of success is at least
+\begin{align*}
+  \Pbb\left[ \text{\textbf{\color{green}Success}} \right] &= 1 - \Pbb\left[ \text{\textbf{\color{red} L-error or R-error}} \right] \\
+  &\geq 1 - \left(\frac{\delta}{2} + \frac{\delta}{2}\right) \\
+  &= 1 - \delta
+\end{align*}
+\textbf{Space-complexity analysis:} \\
+First of all, as
+\begin{equation}
+  \lim_{\epsilon \to 0} \frac{\frac{4 + 2\epsilon}{\epsilon^2(1 - \epsilon)}}{\frac{1}{\epsilon^2}} = 4,
+\end{equation}
+it holds that asymptotically, $$O\left( \frac{4 + 2 \epsilon}{\epsilon^2(1 - \epsilon)} \right) = O\left(
+  \frac{1}{\epsilon^2} \right).$$
+Adding the fact that $O\left( \log\left(  \frac{2}{\delta} \right)\right) =
+O\left( \log\left( \frac{1}{\delta} \right) \right)$, it follows that
+
+\begin{equation}
+  k = O\left(\frac{1}{\epsilon^2} \log\left( \frac{1}{\delta} \right)\right)
+\end{equation}
+
+Throughout the algorithm we have to store $k$ integers (subset $S$) which
+range from $1$ to $n$. Each individual integer in $S$ needs $O(\log(n))$ bits to be
+stored and each index element of $l$ needs $O(\log(m)) = O(\log(n^{O(1)})) =
+O(\log(n))$ bits as well. Thus the bottom line of the memory complexity is
+\begin{equation}
+  O(k\ log(n)) = O\left(\frac{1}{\epsilon^2} log\left(\frac{1}{\delta}\right) \log(n)\right).
+\end{equation}
+\end{proof}
+
+\subsection*{Annex: random numbers and random k-subsets}
+
+To generate a random integer in $[n] = \left\{ 1, \ldots, n \right\}$ using a
+random, unbiased, coin one can use the algorithm $RNG(N)$:
+\\ \\
+\begin{algorithm}[H]
+\SetAlgoLined
+
+\SetKwFunction{FRecurs}{RngRecursive}
+\SetKwProg{Fn}{Function}{:}{}
+
+\Fn{\FRecurs{int $N$}}{
+  \KwIn{The integer N.}
+  \KwOut{A random number in $1, \ldots, N$}
+
+  $m \leftarrow 2^{\lfloor log_2(N) \rfloor + 1}$
+  \tcp{smallest power of $2$ larger or equal than $N$}
+  $R \leftarrow 0$\;
+  \For{$i = 1$ to $log_2(m) - 1$}{
+    $R \leftarrow R + coin()\times2^i$
+  }
+  \uIf{$R == 0$ or $R > N$}{
+    \Return{\FRecurs{$N$}}
+    \tcp{try again}
+  }\Else{
+    \Return{$R$}\;
+  }
+}
+ \caption{Random-number generator with values between $1$ and $N$}
+ \label{alg:algorithm2}
+\end{algorithm}\mbox{}
+ \\ \\
+ At every iteration, the probability of $R$ being bigger than $N$ is smaller
+ than $\frac{1}{2}$. Hence the algorithm terminates with probability at least $1 -
+ \frac{1}{2^k}$ at the $k$-th recursion.
+
+ To generate a random $k$-subset of $[N]$ is not such a trivial problem.
+ One naive approach is to generate and store all $k$-subsets after which we
+ could randomly pick one of them. As the reader has probably already surmised,
+ such method could work for small $k$ but quickly exceeds the memory limit for
+ larger $n$ and $k$. Instead, we should build the $k$-subset ``on the fly''. The
+ idea is to randomly draw numbers between $1$ and $N$, check if it isn't already
+ present in the subset $S$, add it to $S$ if it isn't and discard it otherwise.
+ \\ \\
+\begin{algorithm}[H]
+\SetAlgoLined
+
+\SetKwFunction{KSubset}{NchooseK}
+\SetKwFunction{FRecurs}{RngRecursive}
+\SetKwProg{Fn}{Function}{:}{}
+
+\Fn{\KSubset{int $N$, int $k$}}{
+  \KwIn{The integer $N$ and $k$}
+  \KwOut{A random $k$-subset of $[N]$}
+
+  $H \leftarrow \text{empty HashMap with $k$ bins}$\;
+  $S \leftarrow \varnothing$\;
+  $s \leftarrow 0$\;
+  \While{$s < k$}{
+    $R \leftarrow \FRecurs(N)$ \;
+    \If{$H$.query($R$) == false}{
+      $H.insert(R)$ \;
+      $S \leftarrow S \cup \{R\}$\;
+      $s \leftarrow s + 1$\;
+    }
+  }
+  \Return{S}
+}
+ \caption{Random k-subset generator}
+ \label{alg:algorithm3}
+\end{algorithm}\mbox{}
+ \\ \\
+ 
+ If the numbers between $1$ and $N$ are truly randomly drawn, the expected number of
+ draws required to obtain $k$ distinct samples is 
+
+\begin{equation*}
+  \gamma = n \left[ \frac{1}{n - k + 1} + \ldots + \frac{1}{n}\right]
+\end{equation*}
+
+ which is $O(k \log k)$ if $k \geq \frac{n}{2}$ (see the Coupon collector's
+ problem, the inverse of the Birthday problem). Together with the
+ max load of any of the $k$ bins in the Hash table, the time-complexity of
+ randomly sampling a $k$-subset is
+
+ \begin{equation*}
+   O\left(k\frac{\log^2k}{\log \log k}\right).
+\end{equation*}
+
+with a total memory complexity of $O(k)$.
+
+
+
+
+ 
+
+
+
+  \end{exercise}
+  
+  \newpage
+  \begin{exercise}{2a}
+Suppose that you are given an insertion only stream, i.e. sequence of m numbers $i_1,...,i_M$, where each number is between $1$ and $n$ (we assume that $M = n^{O(1)}$). Let $x \in \R^n$ denote the resulting frequency vector, i.e. for every $j \in [n]$ we let $x_j$ denote the number of occurrences of $j$ in the stream. Choose a pairwise independent hash function $h : [n] \to [m]$ with $m \in \N$, and a four-wise independent hash function $\sigma : [n] \to \{-1,+1\}$. Define an $m\times n$ matrix $\Pi$ by letting, for each $j \in [n]$,
+$$
+\Pi_{i,j} = \left\{\begin{array}{rl} 
+	\sigma(j) & \mbox{if } h(j) = i, \\
+	0 & \mbox{otherwise}.
+	\end{array}\right.
+$$
+ Show that $\Pi x$ can be maintained at unit cost per update in the streaming model of computation, and that for every $x$ the vector $\Pi x$ can be computed in time proportional to the number of non zeros in $x$.
+\\ \\
+\textit{Answer}. Denote by $\hat{x}\in \R^m$ the vector that we maintain during
+the stream and that equals $\Pi x$ at the end of it. When we increment entry
+$x_j$  by 1 (i.e. when we get stream element $j \in [n]$), we maintain
+vector $\hat{x}$ by adding to it the $j$-th column of $\Pi$. However, we note that the
+columns of $\Pi$ have only one nonzero element. In particular, since the hash
+function $h$ only assigns one element (say $i$) to an argument $j$, only the
+$i$-th element of the $j$-th column is nonzero. Hence, only the $i$-th entry of
+$\hat{x}$ is updated (by adding to it $\sigma(j)$), and this is done in constant
+time (w.r.t. $m$).
+\\
+
+Now we consider the case when we have $x$ in memory and we want to compute $\Pi x$. We denote $S:= \{i \in [n] : x_i \neq 0\}$ the set of indices corresponding to the nonzero entries of $x$ and $\Pi_{:,j} $ the $j$-th column of $\Pi$. We have the following:
+\begin{equation}
+\label{eq:Pix_i}
+(\Pi x)_i  = \left( \sum_{j=1}^n x_j \Pi_{:,j} \right)_i  =  \sum_{j=1}^n  x_j \sigma(j) \ind_{\{ h(j) = i\}} = \sum_{j \in S}  x_j \sigma(j) \ind_{\{ h(j) = i\}}.
+\end{equation}
+Assuming that the time needed to compute $x_j \sigma(j)$ is of order $\Theta(1)$, we have that the total time needed to compute $\Pi x$ is of order
+$$
+	\sum_{i=1}^m \left( \sum_{j \in S}  \Theta(1) \ind_{\{ h(j) = i\}} \right) 
+	= \Theta(1) \cdot \sum_{i=1}^m \sum_{j \in S} \ind_{\{ h(j) = i\}}  
+	= \Theta(1) \cdot  \sum_{j \in S} \underbrace{\sum_{i=1}^m \ind_{\{ h(j) = i\}}}_{=1} 
+	= \Theta(1) \cdot |S|,
+$$
+which is clearly proportional to the size of $S$, i.e. the number of nonzero entries in $x$.
+
+  \end{exercise}
+  
+   \begin{exercise}{2b}
+Prove that if $m = C_2/\epsilon^2$ for a sufficiently large absolute constant $C_2 > 0$, then 
+$$
+(1 - \epsilon)\Vert x \Vert_2^2 \leq \Vert \Pi x\Vert_2^2 \leq (1 + \epsilon) \Vert x\Vert_2^2
+$$
+with probability at least $2/3$ for every fixed $x \in \R^n$. 
+\\ \\
+\textit{Answer.}
+As a preliminary remark, recall the Chebyshev's inequality for a random variable $\eta$:
+$$
+\Pbb \Big[ |\eta- \Ebb \left[\eta\right] | \geq \varepsilon \Big] \leq \frac{ \Vbb[ \eta]}{\varepsilon^2}.
+$$
+Letting $\varepsilon := \epsilon \Ebb[\eta]$, the Chebyshev's inequality becomes
+$$
+\Pbb\Big[ |\eta- \Ebb[\eta] | \geq  \epsilon \Ebb[\eta]\Big] \leq \frac{ \Vbb[\eta]}{ \epsilon^2 \Ebb[\eta]^2},
+$$
+which can be expressed equivalently as
+\begin{equation}
+\label{eq:chebyshev2b}
+\Pbb\Big[(1 - \epsilon)\Ebb[\eta] \leq \eta \leq (1 + \epsilon) \Ebb[\eta]\Big] \geq 1 - \frac{ \Vbb[ \eta]}{ \epsilon^2 \Ebb[\eta]^2}.
+\end{equation}
+Now, by letting $\eta$ denote the estimator of $\Vert x \Vert_2^2$ returned by the streaming algorithm at the end of the stream (i.e. $\eta := \Vert \Pi x \Vert_2^2$), we see that if the two following conditions are satisfied:
+\begin{enumerate}
+	\item $\eta$ is an unbiased estimator (i.e. $\Ebb[\eta] = \Vert x \Vert_2^2$),
+	\item $\Vbb[\eta] \leq \frac{1}{3} \epsilon^2 \Ebb[\eta]^2$ (i.e. $1 - \frac{ \Vbb[ \eta]}{ \epsilon^2 \Ebb[\eta]^2} \geq \frac{2}{3}$),
+\end{enumerate}
+then inequality \eqref{eq:chebyshev2b} ensures that our proof is complete. The fact that $m$ must be at least $C_2/\epsilon^2$ with $C_2 > 0$ sufficiently large will appear when we verify that the condition on the variance is satisfied.
+		\\ \\
+		\textbf{1) Computing the expectation of $\eta$}:
+		\\ \\
+		First, recall the following properties, results and definitions:
+		\begin{equation}
+		\label{eq:eta}
+		\eta := \Vert \Pi x \Vert_2^2.
+		\end{equation}
+		
+		\begin{equation}
+		\label{eq:l2norm}
+		\Vert y \Vert_2^2 = \sum_{i=1}^m y_i^2, \qquad \forall y \in \R^m.
+		\end{equation}
+		
+		\begin{equation}
+		\label{eq:linexp}
+		\Ebb\left[\sum_{i=1}^n X_n\right] = \sum_{i=1}^n\Ebb\left[ X_n\right] \qquad \mbox{for a set of  r.v. $\{X_i\}_{1\leq i \leq n}$.}
+		\end{equation}
+		
+		\begin{equation}
+		\label{eq:s_h_indep}
+		\mbox{$h$ and $\sigma$ are chosen independently}
+		\end{equation}
+		
+		\begin{equation}
+		\label{eq:h_expectation}
+		 \Ebb_{h}[\ind_{\{ h(j) = i\}}] = \Pbb_h[ h(j) = i] = \frac{1}{m}, \qquad \forall j \in [n], \forall i \in [m].
+		\end{equation}
+
+		\begin{equation}
+		\label{eq:4wise}
+		\small
+		\Ebb_\sigma\left[\sigma(j)\sigma(k)\right] = \Ebb_\sigma[\sigma(j)]\Ebb_\sigma[\sigma(k)],  \quad \forall j,k \in [n] \quad \mbox{($4 (\Rightarrow 2)$-wise independence of $\sigma$).}
+		\normalsize
+		\end{equation}
+
+		\begin{equation}
+		\label{eq:sigma_expectation}
+		 \Ebb_{\sigma}[\sigma(j)] = 0, \qquad \forall j \in [n].
+		\end{equation}		
+		We can now compute the expectation of $\eta$ as follows:
+		\begin{align}
+			\Ebb[\eta] & \overset{\substack{\eqref{eq:eta} \\ \eqref{eq:l2norm}}}{=}\Ebb \left[ \sum_{i=1}^m \left( \Pi x \right)_i^2 \right] 
+					\nonumber \\
+					& \overset{\substack{\eqref{eq:Pix_i} \\ \eqref{eq:linexp}}}{=} \sum_{i=1}^m  \Ebb_{\sigma,h} \left[\left(\sum_{j=1}^n  x_j \sigma(j) \ind_{\{ h(j) = i\}} \right)^2\right] 
+					\nonumber \\
+					& =  	\sum_{i=1}^m\Ebb_{\sigma,h} \left[\sum_{j=1}^n x_j^2 \underbrace{\sigma(j)^2}_{=1} \ind_{\{ h(j) = i\}} + \sum_{j=1}^{n}\sum_{\substack{k=1 \\ k \neq j}}^n \left( x_j \sigma(j) \ind_{\{ h(j) = i\}} \right)\left(  x_k \sigma(k) \ind_{\{ h(k) = i\}} \right)\right] 
+					\nonumber \\
+					& \overset{\eqref{eq:linexp}}{=} \sum_{i=1}^m \left(	\sum_{j=1}^n x_j^2 \Ebb_h[\ind_{\{ h(j) = i\}}] + \sum_{j=1}^{n}\sum_{\substack{k=1 \\ k \neq j}}^n x_j x_k  \Ebb_{\sigma,h}\left[\sigma(j)\sigma(k) \ind_{\{ h(j) = i,  h(k) = i\}} \right] \right) 
+					\nonumber \\
+					& \overset{\substack{\eqref{eq:s_h_indep} \\ \eqref{eq:h_expectation}}}{=}  \sum_{i=1}^m \left(\frac{1}{m}	\sum_{j=1}^n x_j^2 + \sum_{j=1}^{n}\sum_{\substack{k=1 \\ k \neq j}}^n x_j x_k  \Ebb_\sigma\left[\sigma(j)\sigma(k)\right] \Ebb_h\left[\ind_{\{ h(j) = i,  h(k) = i\}} \right] \right)
+					\nonumber \\	
+					& \overset{\substack{\eqref{eq:4wise}\\\eqref{eq:sigma_expectation}}}{=} \frac{1}{m} \sum_{i=1}^m	\sum_{j=1}^n x_j^2 
+					\nonumber \\	
+					& \overset{\eqref{eq:l2norm}}{=}  \frac{1}{m} \sum_{i=1}^m \Vert x \Vert_2^2 
+					\nonumber \\
+					& = \Vert x \Vert_2^2. \label{eq:eta_exp}															
+		\end{align}
+		This proves that the estimate $\eta$ is indeed an unbiased estimator of $\Vert x \Vert_2^2$. 
+		\\ \\
+	        \textbf{2) Bounding the variance of $\eta$}: 
+	        \\ \\
+		Binding $\Vbb[\eta]$ is a bit more challenging and it will be done in several steps. 	First, we recall some properties that will be used is the derivation of this bound.
+		
+		\begin{equation}
+		\label{eq:varprop}
+		\Vbb[X] = \Ebb[X^2]-\left( \Ebb[X]\right)^2, \qquad \mbox{for a r.v. $X$.}
+		\end{equation}
+
+		\begin{equation}
+		\label{eq:indprop}
+		\Ebb[\ind_{\{X=x\}}] =\Pbb[X=x] , \qquad \mbox{for a r.v. $X$.}
+		\end{equation}			
+		
+		\begin{equation}
+		\label{eq:h_prop}
+		\Pbb_{h}[h(k) = i] = \frac{1}{m}  \qquad  \forall k \in [n], \forall i \in [m].
+		\end{equation}		
+		
+		\begin{equation}
+		\label{eq:h_2wise}
+		\Pbb_{h}[h(k) = i, h(l) = j] = \frac{1}{m^2}, \quad  \forall k \neq l \in [n] , \forall i, j \in [m]\quad \mbox{($2$-wise indep. of $h$).}
+		\end{equation}		
+		We can now come back to the problem at hand and express the variance of our estimator as 
+		\begin{equation}
+		\label{eq:eta_variance}
+		\Vbb[\eta] \overset{ \substack{ \eqref{eq:eta} \\ \eqref{eq:varprop}}}{=} 
+			\underbrace{\Ebb\big[\Vert \Pi x \Vert_2^4\big]}_{=:A} - \underbrace{\left(\Ebb\big[\Vert \Pi x \Vert_2^2\big]\right)^2}_{=:B}.
+		\end{equation}
+		\newline \textbf{Computing $A$}: We first observe that
+		$$
+		\Vert \Pi x \Vert_2^4
+		= \left(\sum_{i=1}^{m} \left(\Pi x \right)_i^2 \right)  \left(\sum_{j=1}^{m} \left(\Pi x \right)_j^2 \right)
+		= \sum_{i=1}^{m} \sum_{j=1}^m \underbrace{\left(\Pi x \right)_i^2\left(\Pi x \right)_j^2}_{=:A^{i,j}},
+		$$
+		where $A^{i,j}$ can be equivalently expressed by
+		\small
+		\begin{align}
+		\label{eq:Aij}
+		A^{i,j} \overset{\eqref{eq:Pix_i}}{=} 	&
+									( \sum_{k=1}^n x_k \sigma(k) \ind_{\{ h(k) = i \}} )
+									( \sum_{l=1}^n x_l \sigma(l) \ind_{\{ h(l) = i \}} )
+									( \sum_{p=1}^n x_p \sigma(p) \ind_{\{ h(p) = j \}} )
+									( \sum_{q=1}^n x_q \sigma(q) \ind_{\{ h(q) = j \}} )
+		\end{align}
+		\normalsize	
+		 We now make the following important observation on Eq. \eqref{eq:Aij}: The distributions of two distinct random variables $A^{i,j}$ and $A^{k,l}$ are identical if $i\neq j$ and $k \neq l$ or if $i = j$ and $k = l$, but they differ if $i\neq j$ and $k = l$ or if $i = j$ and $k \neq l$. This remark motivates the following decomposistion of $A$:
+		\begin{align}
+		\label{eq:A}
+		A 	& =  \Ebb_{\sigma, h}\left[ \sum_{i=1}^m \sum_{j=1}^m A^{i,j} \right] \nonumber \\
+			& \overset{\eqref{eq:linexp}}{=} \sum_{i=1}^m \sum_{j=1}^m\Ebb_{\sigma, h\, | \, i,j}\left[ A^{i,j} \right] \nonumber \\
+			& =  \sum_{i=1}^m \Ebb_{\sigma, h\, | \, i=j}\left[ A^{i,j} \right] + \sum_{i=1}^m \sum_{\substack{j=1 \\ j \neq i}}^m\Ebb_{\sigma, h\, | \, i\neq j}\left[ A^{i,j} \right] \nonumber \\
+			& = m \Ebb_{\sigma, h \, | \, i=j}\left[ A^{i,j} \right] + m(m-1)\Ebb_{\sigma, h \, | \, i\neq j}\left[ A^{i,j} \right]
+		\end{align}
+		
+		We now distinguish three different types of terms in the fully developed sum of Eq. \eqref{eq:Aij}:
+		\begin{enumerate}
+			\item \textit{Terms with identical indices (i.e. $k=l=p=q$)}. The contribution of these terms to $A^{i,j}$ is
+			$$
+			\sum_{k=1}^n x_k^4 \underbrace{\sigma(k)^4}_{=1} \ind_{\{h(k)=i, h(k)=j \}}.
+			$$
+			Hence, the contribution of these terms to $\Ebb_{\sigma, h\, | \, i,j} [A^{i,j}]$ is 
+			\begin{align}
+			\sum_{k=1}^n x_k^4  \Ebb_{h\, | \, i,j}[\ind_{\{h(k)=i, h(k)=j \}} ] 
+			& \overset{\eqref{eq:indprop}}{=} \sum_{k=1}^n x_k^4  \Pbb_{h}[h(k)=i, h(k)=j ]
+			\nonumber \\
+			& \overset{\eqref{eq:h_prop}}{=} \left\{ 
+				\begin{array}{lcl}
+					0 & \mbox{if } & i\neq j \\
+					\frac{1}{m}\sum_{k=1}^n x_k^4 & \mbox{if } & i = j \label{eq:A1} \\
+				\end{array}\right..
+			\end{align}
+			where we used Eq. \eqref{eq:linexp} to pass the expectation operator inside the sum defining $A^{i,j}$ (we will also use this fact implicitly below).
+			\item \textit{Terms where indices are matched two by two}. Letting $\alpha$ and $\beta$ denote the two distinct indices, the contribution of these terms to $A^{i,j}$ becomes
+			$$
+			\sum_{\alpha=1}^n \sum_{\substack{\beta=1 \\ \beta \neq \alpha}}^nx_\alpha^2 x_\beta^2 \underbrace{\sigma(\alpha)^2}_{=1} \underbrace{\sigma(\beta)^2}_{=1}\ind_{\{h(k)=i, h(l)=i, h(p)=j, h(q)=j \}},
+			$$
+			and the contributions to $\Ebb_{\sigma, h\, | \, i,j} [A^{i,j}]$ are given as follows (depending on which indices are matching): \\ \\
+			\fbox{If $\alpha := k=l\neq p = q =: \beta$}
+				\small
+					\begin{align}
+					\sum_{\alpha=1}^n \sum_{\substack{\beta=1 \\ \beta \neq \alpha}}^n x_\alpha^2 x_\beta^2 \Ebb_{ h\, | \, i,j}[\ind_{\{h(\alpha)=i, h(\beta)=j \}}] 	
+							& \overset{\eqref{eq:indprop}}{=} 
+							\sum_{\alpha=1}^n \sum_{\substack{\beta=1 \\ \beta \neq \alpha}}^n x_\alpha^2 x_\beta^2  \Pbb_{h}[h(\alpha)=i, h(\beta)=j ]
+							\nonumber \\
+							& \overset{\eqref{eq:h_2wise}}{=}  \left\{ 
+							\begin{array}{ll}
+								\frac{1}{m^2}\sum_{\alpha=1}^n \sum_{\substack{\beta=1 \\ \beta \neq \alpha}}^n x_\alpha^2 x_\beta^2  & \mbox{if } i\neq j \\
+								\frac{1}{m^2}\sum_{\alpha=1}^n \sum_{\substack{\beta=1 \\ \beta \neq \alpha}}^n x_\alpha^2 x_\beta^2 & \mbox{if } i= j  \label{eq:A2} \\
+							\end{array}\right.,
+					\end{align}
+				\normalsize 
+				\\ \\
+			\fbox{If $\alpha := k=p\neq l = q =: \beta$} \\ \\
+				\small
+					\begin{align}
+					\sum_{\alpha=1}^n \sum_{\substack{\beta=1 \\ \beta \neq \alpha}}^n x_\alpha^2 x_\beta^2 \Ebb_{ h\, | \, i,j}[\ind_{\{h(\alpha)=i=j, h(\beta)=i=j \}}] 	
+							& \overset{\eqref{eq:indprop}}{=} 
+							\sum_{\alpha=1}^n \sum_{\substack{\beta=1 \\ \beta \neq \alpha}}^n x_\alpha^2 x_\beta^2  \Pbb_{h}[h(\alpha)=i=j, h(\beta)=i=j ]
+							 \nonumber\\
+							& \overset{\eqref{eq:h_2wise}}{=} \left\{ 
+							\begin{array}{ll}
+								0 & \mbox{if } i\neq j \\
+								\frac{1}{m^2}\sum_{\alpha=1}^n \sum_{\substack{\beta=1 \\ \beta \neq \alpha}}^n x_\alpha^2 x_\beta^2  & \mbox{if } i= j  \label{eq:A3} \\
+							\end{array}\right..
+					\end{align}
+				\normalsize 			
+			\fbox{If $\alpha := k=q\neq p = l =: \beta$} \\ \\Same as for the case with  $\alpha := k=p\neq l = q =: \beta$.
+		
+
+			\item \textit{Terms with at least one unique index (i.g $k\neq l=p=q$)}. Let $s$ denote one of the distinct indices. The contribution of such terms to $A^{i,j}$ will then be proportional to $\sigma(s)$. Therefore, using the $4$-wise independence of $\sigma$, the expected value of this contribution will be proportional to $\Ebb_\sigma[\sigma(s)]$. Since $\Ebb_\sigma[\sigma(s)]=0$, these terms do not contribute to $\Ebb_{\sigma,h}[A^{i,j}]$.
+		\end{enumerate}
+		Putting everything together (i.e. substituting \eqref{eq:A1}, \eqref{eq:A2} and two times \eqref{eq:A3} into \eqref{eq:A}), we get
+		\begin{align}
+		A & = m \left( \frac{1}{m} \sum_{j=1}^n x_k^4 + \frac{3}{m^2} \sum_{k=1}^n \sum_{\substack{l=1 \\ l \neq k}}^n x_k^2 x_l^2 \right)  + m(m-1) \left( \frac{1}{m^2} \sum_{k=1}^n \sum_{\substack{l=1 \\ l \neq k}}^n x_k^2 x_l^2 \right) \nonumber \\
+		 & = \sum_{j=1}^n x_k^4 + \left(\frac{2}{m}+1\right)\sum_{k=1}^n \sum_{\substack{l=1 \\ l \neq k}}^n x_k^2 x_l^2. \label{eq:Afinal}
+		\end{align}
+		\textbf{Computing $B$}: We can express $B$ as follows using the expression we found for $\Ebb[\eta]$:
+		\begin{equation}
+		B  	= \left(\Ebb[\eta]\right)^2  
+			\overset{\substack{\eqref{eq:eta_exp} \\ \eqref{eq:l2norm}}}{=} \left(\sum_{k=1}^n x_k^2 \right)^2 
+			= \sum_{k=1}^n x_k^4 + \sum_{k=1}^n \sum_{\substack{l=1 \\ l \neq k}}^n x_k^2x_l^2 . \label{eq:Bfinal}
+		\end{equation}
+		
+		Finally, substituting \eqref{eq:Afinal} and \eqref{eq:Bfinal}  into \eqref{eq:eta_variance} allows us to bound the variance as wanted:
+		\begin{align*}
+		\Vbb[\eta] & = \sum_{j=1}^n x_k^4 +  \left(\frac{2}{m}+1\right)\sum_{k=1}^n \sum_{\substack{l=1 \\ l \neq k}}^n x_k^2 x_l^2 - \sum_{k=1}^n x_k^4 - \sum_{k=1}^n \sum_{\substack{l=1 \\ l \neq k}}^n x_k^2x_l^2 \\
+				& = \frac{2}{m} \sum_{k=1}^n \sum_{\substack{l=1 \\ l \neq k}}^n x_k^2 x_l^2 \\
+				& \leq \frac{2}{m}  \sum_{k=1}^n \sum_{l=1}^n x_k^2 x_l^2 \\
+				& \overset{\substack{\eqref{eq:l2norm} \\ \eqref{eq:eta_exp}}}{=} \frac{2}{m}\Ebb[\eta]^2.
+		\end{align*}
+		Therefore, we see that if $m \geq \frac{6}{\epsilon^2}$, then our variance is sufficiently bounded and we conclude the proof using Eq.\eqref{eq:chebyshev2b}.
+  \end{exercise}
+  
+  
+  \newpage
+  \begin{exercise}{3a} 
+For an unweighted and undirected graph $G=(V,E)$, we defined its Laplacian matrix, $L \in \R^{V\times V}$, as follows: For any $u \in V$, $L_{u,u} = \mbox{degree}(u)$ and for any $u \neq v \in V$, let $L_{u,v} = L_{v,u} = -1$ if $e=\{u,v\} \in E$ and let $L_{u,v} = L_{v,u} = 0$ otherwise. \\
+Let $B \in \{-1,0,1\}^{\binom{n}{2} \times n}$ denote the edge incidence matrix of $G$, defined as follows: Rows of $B$ are indexed by pairs $\{u,v\}$ of vertices in $V$. The row $\{u,v\}$ is zero if $\{u,v\}\not\in E$, and otherwise contains exactly two nonzero entries: $-1$ at $u$ and $+1$ at $v$ (the signs can be chosen arbitrarily, as long as one is a plus and the other is a minus). Prove that
+$$
+B^T B = L.
+$$
+\textit{Answer.} Define $n=|V|$ and let $\{u_1,u_2,...,u_n\}$ with  $u_i \in V, \,\forall i \in [n]$ be an arbitrary ordering of the vertices.
+ With this notation, for $1\leq i <  j \leq n$ and $m \in [n]$, we have  
+ $$ 
+ B_{\{u_i,u_j\}, u_m} = \left\{ 
+ 	\begin{array}{rclcl} 
+		0  & \mbox{if} & m \neq i, m \neq j & \mbox{or} & \{u_i,u_j\} \not\in E, \\
+		\pm 1 & \mbox{if} & m = i & \mbox{and} &  \{u_i,u_j\} \in E, \\
+		\mp 1 & \mbox{if} & m = j & \mbox{and} &  \{u_i,u_j\} \in E,\\
+ 	\end{array} \right.
+$$
+which can be compactly rewritten, using indicator variables, as follows:
+$$
+B_{\{u_i,u_j\}, u_m} = \ind_{\left\{\{u_i,u_j\} \in E\right\}}(\pm \ind_{\left\{m=i\right\}} \mp  \ind_{\left\{m=j\right\}}).
+$$
+Note that for an undirected graph $G=(V,E)$ and a given ordering of its vertices $V$, the assumption $1\leq i <  j \leq n$ is simply a notation convention on how to refer to an edge and it is therefore made without loss of generality. With this in mind, we have the following:
+\begin{align*}
+\left( B^TB\right)_{u_k, u_l} 
+	& =  \sum_{i=1}^{n-1} \sum_{j=i+1}^n B_{\{u_i,u_j\}, u_k} B_{\{u_i,u_j\}, u_l} \\
+	& = \sum_{i=1}^{n-1} \sum_{j=i+1}^n 
+	\left[ \ind_{\left\{\{u_i,u_j\} \in E\right\}}(\pm \ind_{\left\{k=i\right\}} \mp  \ind_{\left\{k=j\right\}})   \right]
+	\cdot 
+	\left[ \ind_{\left\{\{u_i,u_j\} \in E\right\}}(\pm \ind_{\left\{l=i\right\}} \mp  \ind_{\left\{l=j\right\}}) \right] \\ 
+	& = \sum_{i=1}^{n-1} \sum_{j=i+1}^n 
+	\ind_{\left\{\{u_i,u_j\} \in E\right\}} \left(\pm \ind_{\left\{k=i\right\}} \mp  \ind_{\left\{k=j\right\}}  \right) 
+	\left(\pm \ind_{\left\{l=i\right\}} \mp  \ind_{\left\{l=j\right\}}\right) \\ 
+	& = \sum_{i=1}^{n-1} \sum_{j=i+1}^n 
+	\ind_{\left\{\{u_i,u_j\} \in E\right\}} \left(
+		\ind_{\left\{k=i, l=i\right\}} 
+		- \ind_{\left\{k=i, l=j\right\}} 
+		- \ind_{\left\{k=j, l=i\right\}}
+		+ \ind_{\left\{k=j, l=j\right\}} \right) \\ 
+	& = \left\{ 
+	\begin{array}{lcl}
+		 \sum_{i=1}^{p-1}  \ind_{\left\{\{u_i,u_p\} \in E\right\}}
+		 	+  \sum_{j=p+1}^{n}  \ind_{\left\{\{u_p,u_j\} \in E\right\}}  & \mbox{if} & k=l =: p \\ 
+		 - \sum_{i=1}^{n-1} \sum_{j=i+1}^n \ind_{\left\{\{u_i,u_j\} \in E\right\}}
+		 	\left( \ind_{\left\{k=i, l=j\right\}}  +\ind_{\left\{k=j, l=i\right\}} \right) & \mbox{if} & k\neq l 
+	\end{array}
+	\right. \\
+	& = \left\{ 
+	\begin{array}{lcl}
+	\mbox{degree}(u_p)  & \mbox{if} & k=l =: p \\ 
+	- \ind_{\left\{\{u_k,u_l\} \in E\right\}}  & \mbox{if} & k\neq l 
+	\end{array}
+	\right. \\
+	& = L_{u_k, u_l}.
+\end{align*}
+This concludes the proof.
+  \end{exercise}
+   \begin{exercise}{3b}
+   Design a random matrix $S$ with a constant number of rows such that $x^TLx, \, x\in \R^V$ can be approximated using $S\cdot B$, and show how this can be used to obtain a single pass streaming algorithm that uses $O(n\log(n))$ bits of space and that returns $\eta$ such that 
+   $$
+   \Pbb[\frac{1}{2} \eta \leq x^TLx \leq 2\eta] \geq 0.9.
+  $$
+\textit{Answer.} From the lectures, we know that one can approximate the $L_2$ norm of a vector $y\in\R^n$ given a stream of updates to entries of $y$. This is done by generating a random matrix $A\in \R^{t\times n}$ by independently and uniformly sampling each entry $A_{ij}$ from $\{-1,+1\}$ (with $t$ constant w.r.t. $n$ and selected so that it satisfies the tolerance concerning the quality of the approximation). Then,  one simply maintains the vector $z = Ay \in \R^t$  upon the arrival of a stream element that updates $y$. At the end of the stream, $ \Vert y \Vert_2$ is approximated by $\frac{1}{\sqrt{t}}\Vert Ay \Vert_2$.
+
+To link this result to the problem at hand, we make the following observation using the result from exercise 3a.:
+$$
+x^T L x = x^T B^T B x = \Vert B x \Vert_2^2.
+$$
+This means that we can approximate $x^T L x $ by generating a random matrix $S\in \{-1, +1\}^{t\times \binom{n}{2}}$ and by maintaining $S (Bx)$ during the stream. We note however that we cannot store $S$ and $B$ separately as they are of size $t\times \binom{n}{2}$ and $\binom{n}{2}\times n$, respectively. This would indeed violate our $O(n\log(n))$ space constraint. Therefore, we must construct the matrix $M:= (SB)\in R^{t\times n}$ beforehand using a stream $\sigma_E=\langle e_j \rangle_{1\leq j \leq |E|}$ containing the elements of $E$. Once $M$ is constructed, we are ready to receive the stream $\sigma_x=\langle x_j\rangle_{1\leq j \leq n}$ representing the entries of $x$.
+\begin{itemize}
+	\item \textbf{Storing} $S$: Since we cannot store each entry of $S$ separately, we need to sample at random $t$ hash functions $h: [\binom{n}{2}] \to \{-1, +1\}$
+	 (each one representing a row of $S$) from a $4$-wise independent hash family $\mathcal{H}$ (the need for $4$-wise 
+	 independence will be justified below in the analysis of our algorithm). As presented in lecture notes 14, one can sample such a $4$-wise independent hash function as follows:
+	 \begin{itemize}
+	 	\item Select a prime $p \in \{\binom{n}{2},...,2\binom{n}{2}\}$,
+		\item Define $f(x) = \sum_{k=0}^3 a_k x^k \mod p, 
+			\quad a_k \overset{iid}{\sim} \mbox{\textsc{Uniform}}(0,p-1), \quad k=0,1,2,3.$
+		\item Define $h(x) = 2*(f(x) \mod 2 )-1$.
+	\end{itemize}
+	Since $\binom{n}{2} = O(n^2)$, storing $p$ (hence $\mathcal{H}$) takes $O(\log(n))$ bits of space, and storing $t$ distinct hash functions from $\mathcal{H}$ takes $O(4t\log(n))$ bits of space (for the coefficients $a_k$). These are both $o(n\log(n))$ if $t$ is constant w.r.t. $n$, which satisfies our space limitations. 
+	\item \textbf{Construction of} $M$: For this section, we will again consider an arbitrary ordering 
+	$\{u_k \}_{1\leq k \leq n}$ of $V$ and an arbitrary ordering of the set 
+	$$\bar{E} : = \{\bar{e}_k = \{u_i, u_j\} \, | \, u_i, u_j \in V, i<j\}_{1\leq k \leq \binom{n}{2}}.$$ 
+	We will also fix the following convention for the sign and ordering of the entries of $B$:
+	$$
+	 B_{k, l} = 
+	 \ind_{\left\{\bar{e}_k \in E\right\}}( - \ind_{\left\{l=i\right\}} + \ind_{\left\{l=j\right\}}), 
+	 \qquad \forall \bar{e}_k = \{u_i,u_j\} \in \bar{E}, \quad \forall l \in [n].
+	 $$
+	 And lastly for the ordering of $S$:
+	 $$
+	 S_{k,l} = h_k(l), \qquad h_k \overset{iid}{\sim} \mathcal{H}, \quad k\in [t], \, l \in \left[\binom{n}{2}\right].
+	 $$
+	To construct $M\in \R^{t\times n}$, we start by initializing its entries to zero. We then note that upon arrival of stream element $e_j=\{u_k,u_l\}\in E$, the only entries of $M$ that are updated are the $k$-th and $l$-th columns. In fact, $\forall i \in [t]$, 
+	\begin{itemize}
+		\item $M_{i,k} \gets M_{i,k} + S_{i,k}B_{k,i}$,
+		\item $M_{i,l} \gets M_{i,l} + S_{i,l}B_{l,i}$.
+	\end{itemize}
+	Using the definitions of $B$ and $S$ given above, this becomes, $\forall i \in [t]$,
+		\begin{itemize}
+		\item $M_{i,k} \gets M_{i,k} - h_i(k)$,
+		\item $M_{i,l} \gets M_{i,l} + h_i(l)$.
+	\end{itemize}
+	Finally, once all the edges have been processed (i.e. at the end of $\sigma_E$), the matrix $M$ equals $SB$.
+	\item \textbf{Estimation of} $x^T L x$: With the matrix $M$ fully constructed, we are ready to process the stream $\sigma_x$. We start by initializing a vector $\hat{x}\in \R^t$ to zero. The objective is to maintain this vector such that at the end of the stream $\sigma_x$, it equals $Mx$. To do so, upon arrival of entry $x_j, \, j\in [n]$, we update $\hat{x}$ by adding to it $x_j$ times the $j$-th columns of $M$. Once $\hat{x}$ is fully evaluated (i.e. at the end of $\sigma_x$), one simply approximate $x^TLx$ by $\eta := \frac{1}{t}\sum_{i=1}^t \hat{x}_i^2$. Note that this algorithm could easily be adapted if the stream were to update the entries incrementally (i.e. when entry $\hat{x}_i$ is updated $q_i$ times by increments $\Delta_i^l$ with $\sum_{l=1}^{q_i} \Delta_i^l = x_i, \, \forall i \in [n]$). In this case, upon arrival of stream element $\Delta_j^l$, we add $\Delta_j^l$  times the $j$-th column of $M$ to $\hat{x}$.
+\end{itemize}
+In order to choose $t$ so that our constraints are satisfied, we must first analyse our algorithm. We define $y:=Bx$ and we note that the proof of claim 2 in lecture notes 17 yields 
+$$
+\Ebb_{h_i \sim \mathcal{H}}[\hat{x}_i^2] = \Vert y \Vert_2^2, \quad \forall i \in [t].
+$$
+In addition, and this is when the $4$-wise independence of $\mathcal{H}$ is needed, one can show (see proof of claim 3 in lecture notes 17) that
+$$
+\Vbb_{h_i \sim \mathcal{H}}[\hat{x}_i^2]\leq2\Vert y \Vert_2^4, \quad \forall i \in [t].
+$$
+By sampling independently $t$ hash functions from $\mathcal{H}$, we show using linearity of expectations that
+$$
+\Ebb_{h_1,...,h_t \overset{iid}{\sim} \mathcal{H}}\left[\eta\right] = \Vert y \Vert_2^2.
+$$
+Moreover, using the identity $\Vbb[aX] = a^2 \Vbb[X]$ and the fact that the $\Vbb[\sum_{i}X_i] = \sum_i\Vbb[X_i]$ if $X_i$ are independent random variables, we have
+$$
+\Vbb_{h_1,...,h_t \overset{iid}{\sim} \mathcal{H}}\left[\eta\right]\leq\frac{2}{t}\Vert y \Vert_2^4.
+$$
+Dropping the heavy notation and using the Chebyshev's inequality, 
+$$\Pbb\left[|\eta-\Vert y \Vert_2^2| \geq \epsilon\Vert y \Vert_2^2\right] \leq \frac{\Vbb[\eta]}{\epsilon^2\Vert y \Vert_2^4} \leq \frac{2}{t\epsilon^2}.$$
+This can be expressed equivalently as follows:
+$$
+\Pbb\left[(1-\epsilon)\Vert y \Vert_2^2 \leq \eta \leq (1+\epsilon) \Vert y \Vert_2^2 \right] \geq 1-\frac{2}{t\epsilon^2}.
+$$
+Lastly, recalling that $\Vert y \Vert_2^2 = \Vert Bx\Vert_2^2 = x^TLx$ and choosing $\epsilon = \frac{1}{2}$ and $t\geq 80$, we obtain the precision that we wanted, i.e,
+$$
+\Pbb\left[\frac{1}{2}x^TLx \leq \eta \leq \frac{3}{2}x^TLx \right] \geq 0.9 \quad \Longleftrightarrow \quad \Pbb\left[2 \eta \geq x^TLx \geq \frac{2}{3}\eta\right] \geq 0.9.$$
+  \end{exercise}
+ 
+ \newpage
+\begin{exercise}{4} (\textbf{Facility location}) A famous Swiss chocolate factory has decided to ramp up production of chocolate and would like to open $k>0$ locations from a short list of n candidate locations to optimally serve their clients (there are m clients, numbered $1$ through $m$).  If a
+subset $ S \subseteq [n] = \{1,2,..,n\}$ of locations is open, for every $i = 1, ..,m$ the $i-th$ client will go to the location that serves their favourite type of chocolate as specified by the client satisfaction matrix $A \in \mathbb{R}^{mxn}$: the (i, j) entry of $A$ specifies how much client i likes chocolate served by
+location j (the chocolate is excellent everywhere, so the entries of $A$ are non-negative). Formally,
+we would like to find 
+
+\begin{equation*}
+    \max\limits_{S\subseteq[n], |S|\leq k} f(S) 
+\end{equation*}
+
+Where:
+\begin{equation}
+    f(S) = \sum_{i\in[m]}  \max\limits_{j\in S}A_{i,j}
+\end{equation}
+
+when $S \neq \varnothing$ and $f(\varnothing = 0)$. Give a polynomial time algorithm that achieves a $(1-1/e)$ approximation for this problem. 
+\\ \\
+\textit{Answer.} We relate this to the problem of maximising a submodular function. 
+\newline \textbf{Function $f$ is submodular}:
+we first prove that $f: 2^N \rightarrow \mathbb{R}$, a set function that, as we can see from its definition, assigns a real (non negative here) value to every subset $S \subseteq N$ of a ground-set $ N = [n] = \{1,2,...,n
+\}$ is sub-modular. Formally, we would like to prove that $f$ is submodular if: 
+\begin{equation}\label{eq:submodular}
+    \forall B, C \subseteq [n]: f(B) + f(C) \geq f(B \cup C) + f(B \cap C)
+\end{equation}
+
+ We first consider the easy case where $B \cap C = \varnothing$. In this case, logically we have: 
+
+\begin{align*}
+    f(B) + f(C) &= \sum_{i\in[m]} \max\limits_{j\in B}A_{i,j} + \sum_{i\in[m]} \max\limits_{j\in C}A_{i,j} \\
+     &>  \sum_{i\in[m]} \max\limits_{j\in B \cup C}A_{i,j} + \sum_{i\in[m]}  \max\limits_{j\in B \cap C}A_{i,j} \\
+     &= \sum_{i\in[m]} \max\limits_{j\in B \cup C}A_{i,j} \\
+     &= f(B \cup C) + f(B \cap C)
+\end{align*}
+
+Now for the other case, we have $B \cap C \neq \varnothing$. We again separate into two cases. In the first case,  for all clients $i \in [m]$, the maximal value over sets $B$ and $C$ are attained in their intersection $B\cap C$. So $ \forall i \in [m]$, for $j \in B$ and $k \in C$, $A_{i,j}$ and $A_{i,k}$ are maximal while $j,k \in B \cap C$. Then $\forall i: A_{i,k} = A_{i,j}$. In that case, we have that: 
+\begin{equation}
+    \label{eq:equalities_max}
+    \forall i \in [m] :  \max\limits_{j\in B \cup C}A_{i,j} = \max\limits_{j\in B \cap C}A_{i,j} = \max\limits_{j\in B}A_{i,j}  = \max\limits_{j\in C}A_{i,j}
+\end{equation}
+And thus,
+\begin{align*}
+    f(B) + f(C) &= \sum_{i\in[m]} \max\limits_{j\in B}A_{i,j} + \sum_{i\in[m]} \max\limits_{j\in C}A_{i,j} \\
+    &\overset{\eqref{eq:equalities_max}}{=}  \sum_{i\in[m]} \max\limits_{j\in B \cup C}A_{i,j} + \sum_{i\in[m]}  \max\limits_{j\in B \cap C}A_{i,j} \\
+    &= f(B \cup C) + f(B \cap C) 
+\end{align*}
+
+In the second case, we state that there exists at least one client $k$ such that 
+
+\begin{equation}
+\label{eq: client_k}
+    \max\limits_{j\in B}A_{k,j}  > \max\limits_{j\in C}A_{k,j}
+\end{equation}
+
+So client $k$ reaches a bigger value over set $B$ than $C$ (and all other clients reach the same maximal value over $B$ and $C$). In that case, the maximal value over set $B$ for client $k$ has to be attained in $B\setminus C$ otherwise client $k$ could reach the same maximal value in set $C$ as in $B$. So
+\begin{equation}
+    \max\limits_{j\in B \cap C}A_{k,j}  < \max\limits_{j\in B}A_{k,j}  = \max\limits_{j\in B\setminus C}A_{k,j} 
+\end{equation}
+Furthermore, for set $C$, by the definition of the maximum over a set, we know that 
+\begin{equation}
+    \label{eq:maximum_def}
+    \forall D \subseteq C, i \in [m]: \max\limits_{j \in D} A_{i,j} \leq  \max\limits_{j \in C} A_{i,j}
+\end{equation}
+
+So as $B\cap C \subseteq C$, we have:
+\begin{equation}
+\label{eq:max_lower}
+    \max\limits_{j\in B \cap C}A_{k,j} \overset{\eqref{eq:maximum_def}}{\leq} \max\limits_{j\in C}A_{k,j}
+\end{equation}
+
+We also note that
+\begin{equation}
+\label{eq:eq_max}
+    \max\limits_{j\in B \cup C}A_{k,j} \overset{\eqref{eq: client_k}}{=} \max\limits_{j\in B}A_{k,j}
+\end{equation}
+Thus, 
+\begin{equation}
+\label{eq:max_client_k}
+    \max\limits_{j\in B \cap C}A_{k,j} + \max\limits_{j\in B \cup C}A_{k,j}  \overset{\eqref{eq:eq_max}}{=}  \max\limits_{j\in B \cap C}A_{k,j} + \max\limits_{j\in B }A_{k,j}   \overset{\eqref{eq:max_lower}}{\leq}  \max\limits_{j\in C}A_{k,j} + \max\limits_{j\in B}A_{k,j}
+\end{equation} 
+
+From this, because we stated that except clients like $k$ where $\max\limits_{j\in B}A_{k,j}  > \max\limits_{j\in C}A_{k,j}$, the other clients attain the same maximal value over $B$ and $C$, it follows that: 
+\begin{align*}
+    f(B \cup C) + f(B \cap C) &= \sum_{i\in[m]} \max\limits_{j\in B \cup C}A_{i,j} + \sum_{i\in[m]}  \max\limits_{j\in B \cap C}A_{i,j} \\
+    &\overset{\eqref{eq:max_client_k}}{\leq}
+     \sum_{i\in[m]} \max\limits_{j\in B}A_{i,j} + \sum_{i\in[m]} \max\limits_{j\in C}A_{i,j} \\
+     &= f(B)+f(C) 
+\end{align*}
+
+The situation where there exists at least one client $k$ such that $\max\limits_{j\in C}A_{k,j}  > \max\limits_{j\in B}A_{k,j}$ gives the same result by symmetry. So, we have proved that our function $f$ is submodular. \\ \\
+
+\textbf{Function $f$ is monotone}: we are further going to prove that our function $f$ is monotone. I.e. 
+\begin{equation}
+    \label{eq:monotone}
+    \forall S \subseteq T \subseteq [n]: f(S)\leq f(T)
+\end{equation}
+By the definition of the maximum over a set Eq.\eqref{eq:maximum_def}, we can state that 
+\begin{align*}
+    \forall B \subseteq C \subseteq [n]: f(B)  = \sum_{i\in[m]}  \max\limits_{j\in B}A_{i,j} 
+     &\overset{\eqref{eq:maximum_def}}{\leq} 
+     \sum_{i\in[m]} \max\limits_{j\in C}A_{i,j} = f(C) \\
+\end{align*}
+
+\textbf{Algorithm, maximising submodular function}: we have a submodular, monotone function for which we want to find a set $S$ that maximises our function while being of size at most $k$. We are thus in a case of constrained monotone maximisation of submodular functions subject to cardinality constraint $k$. As seen in the course, we solve it by generalising the greedy algorithm to submodular functions. 
+ \\ \\
+\begin{algorithm}[H]
+\SetAlgoLined
+\KwIn{Ground set $N$, value oracle for monotone submodular $f: 2^N \rightarrow \mathbb{R}$, parameter $0\leq k \leq |N|$}
+\KwOut{$S\subseteq N$ with $|S| \leq k$}
+ $S \leftarrow \varnothing$\;
+ \For{$i = 1$ to $k$ do}{
+ Let $u_i = \argmax_{u \in N \setminus S}f(u|S)$\;
+ $S\leftarrow S \cup \{ u_i \}$}
+ \Return{S}
+ \caption{Generalisation of Greedy}
+\end{algorithm}\mbox{}
+\\ \\
+In this Algorithm, we choose the element $u \notin S$ with maximal marginal gain $f(u|S)$ and add $u$ to $S$. By Theorem 2 of Lecture 23 we know that: 
+\begin{theorem}{2}
+Let S be the set produced by the greedy algorithm for maximising a monotone submodular function f subject to a cardinality constraint k. Let O be any set of at most k elements (optimal set). Then $f(S) \geq (1-1/e)f(O)$
+\end{theorem}
+
+We further know that Greedy algorithm runs in polynomial time (in this case $k$ iterations and at most $O(n)$ for finding $\argmax_{u \in N \setminus S}f(u|S)$ assuming we have an oracle for the value of $f(u|S)$). 
+
+  \end{exercise}
+ \newpage
+  \begin{exercise}{5}
+    \definecolor{blue-violet}{rgb}{0.66, 0.0, 0.66}
+    The code of the implementation is attached in the appendix. The successful
+    submission on the Codeforces Online Judge is: 
+
+    \url{https://codeforces.com/group/TUksowRwAk/contest/280254/submission/80451941}
+    by the contestant \href{https://codeforces.com/profile/PineMarten}{\textbf{\color{blue-violet}PineMarten}}.
+  \end{exercise}
+
+  \section*{Appendix}
+  \subsection*{C++ Code}
+  \lstinputlisting[language=C++]{exercise5.cpp}
+ 
+\end{document}
+
